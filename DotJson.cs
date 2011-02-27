@@ -579,8 +579,8 @@
             var endSlashRx = new System.Text.RegularExpressions.Regex("/+$");
             var beginSlashRx = new System.Text.RegularExpressions.Regex("^/+");
 
-            // If no leading slash on baseUri, add it
-            if (!endSlashRx.IsMatch(baseUri.ToString()))
+            // If no leading slash on baseUri, add it (ignore if its absolute)
+            if (!endSlashRx.IsMatch(baseUri.ToString()) && !baseUri.IsAbsoluteUri)
                 baseUri = new Uri(baseUri + "/");
 
             // Remove leading slash on relative, if any
