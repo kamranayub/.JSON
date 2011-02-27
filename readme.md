@@ -1,13 +1,20 @@
 ﻿.JSON is For Winners
 ====================
 
-*.JSON* is a single-file group of classes that help you easily work with JSON as a *dynamically typed object* (`myJson.someProperty[0].name`), obtained from from web services, strings, or anonymous objects.
+**.JSON** is a group of classes **in one file** that help you easily work with JSON as a **dynamically typed object** (`myJson.someProperty[0].name`), obtained from from web services, strings, or anonymous objects.
 
-It's syntactic sugar.
+It's made up of syntactic sugar, spice, and everything nice.
 
-# Examples #
+### Examples ###
 
 View full examples in */src/*.
+
+### Install ###
+
+ - Copy the file to your project. 
+ - Add a reference to `System.Web.Extensions`. 
+ - Take a deep breath
+ - You're all done
 
 ## JSON Web Services - `JsonService` ##
 
@@ -75,7 +82,7 @@ I mean, who's going to stop you?
 
 ## Oh yah, LINQ works too. ##
 
-*"I heard you can't use dynamics with LINQ... bummer!" ~ You*
+**"I heard you can't use dynamics with LINQ... bummer!"** ~ You
 
 You sure about that?
 
@@ -109,7 +116,7 @@ The Microsoft serialization API converts most primitive types fine, but .JSON go
 
 ### Compact Names ###
 
-If no naming conflicts exist, `Json` also supports compact versions of JSON key names (strips all non-allowed characters for CLS identifiers).
+*If no naming conflicts exist*, `Json` also supports compact versions of JSON key names (strips all non-allowed characters for CLS identifiers).
 
 A compact name is always secondary; that is, an exact match will always return first before `Json` will check the compact key dictionary.
 
@@ -119,7 +126,7 @@ The following would all be accessible from compact equivalents, as long as an _a
  - `Foo-Bar` => `FooBar`
  - `foo-Bar` => `fooBar`
 	
-If an actual key *does* exist, you need to access it via the dictionary:
+If an actual key **does** exist, you need to access it via the dictionary:
 
 	var json = "{ 'foobar': 1, 'foo-bar': 2 }";
 	
