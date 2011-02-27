@@ -5,17 +5,13 @@
 
 It's made up of syntactic sugar, spice, and everything nice.
 
-### Examples ###
+## Learn
 
-View full examples in [/src/](tree/master/src).
+View [the Wiki](https://github.com/kamranayub/.JSON/wiki)
 
-### Install ###
+## Install ##
 
 1. Copy the file to your project. 
 2. Add a reference to `System.Web.Extensions`. 
 3. Take a deep breath
 4. You're all done
-
-### Learn
-
-View [the Wiki](https://github.com/kamranayub/.JSON/wiki)
