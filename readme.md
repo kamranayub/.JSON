@@ -49,11 +49,11 @@ Call `JsonService.GetUrl(url)` to access JSON-enabled web services. The class wi
 
 ### Properties ###
 
- - Credentials (`ICredentials`): default null
+- Credentials (`ICredentials`): default null
   - Gets or sets the credentials used for the request
- - Encoding (`Encoding`): default UTF8
+- Encoding (`Encoding`): default UTF8
   - Gets or sets the encoding used for the request
- - ForceSendAuthorization (`bool`): default false
+- ForceSendAuthorization (`bool`): default false
   - Gets or sets a value indicating whether to force sending the `Authorization` HTTP header on the first request
   
 ## Standalone JSON Parsing - `Json` ##
