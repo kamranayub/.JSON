@@ -105,8 +105,6 @@ I mean, who's going to stop you?
 		}
 	};
 
-	// This is a shortcut for `new JavaScriptSerializer.Serialize(object)`
-	// in System.Web.Extensions.Services
 	string jsonString = Json.Stringify(myJson);
 	
 	// Or manipulate it like other examples
