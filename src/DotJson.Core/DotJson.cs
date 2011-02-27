@@ -24,7 +24,6 @@ namespace DotJson
     /// </summary>
     public class JsonService
     {
-
         /// <summary>
         /// Instantiate dynamic JSON service with API url (root or method url). Private; use .Url(url) to start the fluent interface.
         /// </summary>
@@ -359,6 +358,8 @@ namespace DotJson
     /// </summary>
     public class Json : DynamicObject
     {
+        #region Private
+
         // It's case-sensitive, baby!
         private readonly IDictionary<string, dynamic> DynamicDictionary =
             new Dictionary<string, dynamic>(StringComparer.Ordinal);
@@ -370,17 +371,35 @@ namespace DotJson
         // Store original deserialized object for serialization
         private readonly object OriginalObject;
 
+        // Store ref to a serializer to avoid instantiating them all over
+        private static readonly JavaScriptSerializer Serializer = new JavaScriptSerializer();
+
+        #endregion
+
+        #region Cascading Constructors
+
+        private Json(object anonObject)
+            : this(Serializer.Serialize(anonObject))
+        { }
+
+        private Json(string json)
+            : this(Serializer.Deserialize<IDictionary<string, object>>(json))
+        { }
+
         /// <summary>
-        ///  Support dictionary key getting
+        /// Final constructor that always gets called
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public object this[string key]
+        /// <param name="dictionary"></param>
+        private Json(IDictionary<string, object> dictionary)
         {
-            get { return this.DynamicDictionary[key]; }
+            this.OriginalObject = dictionary;
+
+            TranslateDictionary(dictionary);
         }
 
-        #region Static Methods
+        #endregion
+
+        #region Public Methods/Properties
 
         /// <summary>
         /// Creates a new Dynamic JSON dictionary with given (assumes valid) JSON string.
@@ -412,32 +431,15 @@ namespace DotJson
             return new Json(anonObject).ToString();
         }
 
-        #endregion
-
-        #region Constructors
-
-        private Json(string json)
-            : this(new JavaScriptSerializer().Deserialize<IDictionary<string, object>>(json))
-        { }
-
-        private Json(object anonObject)
-            : this(new JavaScriptSerializer().Serialize(anonObject))
-        {
-            this.OriginalObject = anonObject;
-        }
-
         /// <summary>
-        /// This constructor gets called for sub-properties in the Dynamic Dictionary, recursively.
+        ///  Support dictionary key getting
         /// </summary>
-        /// <param name="dictionary"></param>
-        private Json(IDictionary<string, object> dictionary)
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public object this[string key]
         {
-            this.OriginalObject = dictionary;
-
-            TranslateDictionary(dictionary);
+            get { return this.DynamicDictionary[key]; }
         }
-
-        #endregion
 
         /// <summary>
         /// Returns stringified object
@@ -446,10 +448,12 @@ namespace DotJson
         public override string ToString()
         {
             if (this.OriginalObject != null)
-                return new JavaScriptSerializer().Serialize(this.OriginalObject);
+                return Serializer.Serialize(this.OriginalObject);
             else
                 return base.ToString();
         }
+
+        #endregion
 
         #region Private Helpers
 
@@ -467,7 +471,7 @@ namespace DotJson
 
                 if (kv.Value is IDictionary<string, object>)
                 {
-                    value = new Json(kv.Value as IDictionary<string, dynamic>);
+                    value = new Json(kv.Value as IDictionary<string, object>);
                 }
                 else if (kv.Value is Array)
                 {
@@ -475,8 +479,8 @@ namespace DotJson
 
                     if (objects.Any())
                     {
-                        value = objects.Select(o => o is IDictionary<string, dynamic> ?
-                                    new Json(o as IDictionary<string, dynamic>) : o).ToArray();
+                        value = objects.Select(o => o is IDictionary<string, object> ?
+                                    new Json(o as IDictionary<string, object>) : o).ToArray();
                     }
                 }
 
@@ -538,7 +542,6 @@ namespace DotJson
     /// </summary>
     public static class DotJsonExtensions
     {
-
         /// <summary>
         /// Fixes up inconsistencies with how new Uri treats generating a URL. 
         /// Notably, removing/adding trailing or leading slashes.
