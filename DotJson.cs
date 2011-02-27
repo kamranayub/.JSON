@@ -28,6 +28,38 @@
             this.Encoding = UTF8Encoding.UTF8;
         }
 
+        /// <summary>
+        /// Shortcut for new JsonService(baseUri).GET(relative)
+        /// </summary>
+        /// <param name="url">Full API URL to the GET metod</param>
+        /// <returns></returns>
+        public static dynamic GetUrl(string url)
+        {
+            return new JsonService(new Uri(url)).GET("");
+        }
+
+        /// <summary>
+        /// Shortcut for new JsonService(baseUri).POST(relative, params)
+        /// </summary>
+        /// <param name="url">Full API URL to the GET metod</param>
+        /// <param name="dataParams">Key/value pair query parameters (e.g. ?key=value)</param>
+        /// <returns></returns>
+        public static dynamic PostUrl(string url, object dataParams)
+        {
+            return new JsonService(new Uri(url)).POST("", dataParams);
+        }
+
+        /// <summary>
+        /// Shortcut for new JsonService(baseUri).POST(relative, params)
+        /// </summary>
+        /// <param name="url">Full API URL to the POST metod</param>
+        /// <param name="dataParams">String dictionary of Key/value pair query parameters (e.g. ?key=value)</param>
+        /// <returns></returns>
+        public static dynamic PostUrl(string url, IDictionary<string, string> dataParams)
+        {
+            return new JsonService(new Uri(url)).POST("", dataParams);
+        }
+
         #region Public Props
 
         /// <summary>
@@ -478,7 +510,7 @@
         {
             var endSlashRx = new System.Text.RegularExpressions.Regex("/+$");
             var beginSlashRx = new System.Text.RegularExpressions.Regex("^/+");
-            
+
             // If no leading slash on baseUri, add it
             if (!endSlashRx.IsMatch(baseUri.ToString()))
                 baseUri = new Uri(baseUri + "/");

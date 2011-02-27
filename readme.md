@@ -18,16 +18,19 @@ View full examples in */src/*.
 
 ## JSON Web Services - `JsonService` ##
 
-Create a new `JsonService` to access JSON-enabled web services. The class will expect that all results will be returned in JSON. It exposes several properties that you can manipulate for more control over the request.
+Call `JsonService.GetUrl(url)` to access JSON-enabled web services. The class will expect that all results will be returned in JSON. It exposes several properties that you can manipulate for more control over the request.
 	
-	// Connect to GitHub
-	var gitUri = new Uri("https://github.com/api/v2/json/");
-	var gitService = new JsonService(gitUri);
-
 	// Get my repos
-	var repositories = gitService.GET("repos/show/kamranayub").repositories;
+	var repositories = JsonService.GetUrl("http://github.com/api/v2/repos/show/kamranayub").repositories;
 	
 	return View(repositories);
+
+### The Long Way ###
+
+`JsonService` provides two static shortcuts: `GetUrl(url)` and `PostUrl(url, params)`. Use them when you just need the bare-bones. Otherwise, instantiate it:
+
+	var gitUri = new Uri("https://github.com/api/v2/json/");
+	var gitService = new JsonService(gitUri);
 
 ### Supports Authentication, too ###
 
@@ -44,6 +47,15 @@ Create a new `JsonService` to access JSON-enabled web services. The class will e
 
 	return View(user);
 
+### Properties ###
+
+ - Credentials (`ICredentials`): default null
+  - Gets or sets the credentials used for the request
+ - Encoding (`Encoding`): default UTF8
+  - Gets or sets the encoding used for the request
+ - ForceSendAuthorization (`bool`): default false
+  - Gets or sets a value indicating whether to force sending the `Authorization` HTTP header on the first request
+  
 ## Standalone JSON Parsing - `Json` ##
 
 Don't fret if you don't want to use this only for web services. Why not just create a `Json` object?

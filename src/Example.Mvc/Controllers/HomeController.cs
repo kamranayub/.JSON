@@ -19,12 +19,8 @@ namespace Example.Mvc.Controllers
 
         public ActionResult GitHubBasicList()
         {
-            // Connect to GitHub
-            var gitUri = new Uri("https://github.com/api/v2/json/");
-            var gitService = new JsonService(gitUri);
-
             // Get Kamran's repos
-            var repositories = gitService.GET("repos/show/kamranayub");
+            var repositories = JsonService.GetUrl("https://github.com/api/v2/json/repos/show/kamranayub");
 
             return View(repositories);
         }
@@ -52,12 +48,8 @@ namespace Example.Mvc.Controllers
 
         public ActionResult EnvatoBasicList()
         {
-            // Connect to Envato
-            var envUri = new Uri("http://marketplace.envato.com/api/v2/");
-            var envService = new JsonService(envUri);
-
             // Get Kamran's Code Canyon items
-            var files = envService.GET("new-files-from-user:kayub,codecanyon.json");
+            var files = JsonService.GetUrl("http://marketplace.envato.com/api/v2/new-files-from-user:kayub,codecanyon.json");
 
             return View(files);
         }

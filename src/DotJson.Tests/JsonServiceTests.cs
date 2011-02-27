@@ -26,6 +26,8 @@ namespace DotJson.Tests
             var json = svc.GET("repos/show/kamranayub");
 
             CheckRepositoriesResult(json);
+
+            CheckRepositoriesResult(JsonService.GetUrl("https://github.com/api/v2/json/repos/show/kamranayub"));
         }
 
         /// <summary>
@@ -39,7 +41,7 @@ namespace DotJson.Tests
             // Setup
             // For GitHub, need to forcefully send the authorization header
             svc.AddBasicAuth("kamranayub/token", 
-                System.IO.File.ReadAllText("../../../git_token.private"), true);           
+                System.IO.File.ReadAllText("../../../git_token.private"), true);
 
             var json = svc.GET("user/show/kamranayub");
 
@@ -54,11 +56,13 @@ namespace DotJson.Tests
         [TestMethod()]
         public void JsonService_POST_ShouldReturn_Value_ForGitHubService()
         {
+            var @params =  new { foo = "bar" };
             var svc = new JsonService(_uri);
-            var json = svc.POST("repos/show/kamranayub", new { foo = "bar" });
+            var json = svc.POST("repos/show/kamranayub", @params);
 
             CheckRepositoriesResult(json);
 
+            CheckRepositoriesResult(JsonService.PostUrl("https://github.com/api/v2/json/repos/show/kamranayub", @params));
         }
 
         /// <summary>
