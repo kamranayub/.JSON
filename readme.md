@@ -7,7 +7,7 @@ It's made up of syntactic sugar, spice, and everything nice.
 
 ### Examples ###
 
-View full examples in */src/*.
+View full examples in **/src/**.
 
 ### Install ###
 
@@ -16,9 +16,13 @@ View full examples in */src/*.
  - Take a deep breath
  - You're all done
 
-## JSON Web Services - `JsonService` ##
+## JSON Web Services - Use `JsonService` ##
 
-Call `JsonService.GetUrl(url)` to access JSON-enabled web services. The class will expect that all results will be returned in JSON. It exposes several properties that you can manipulate for more control over the request.
+The `JsonService` class will expect that all results will be returned in JSON. It exposes several properties that you can manipulate for more control over the request.
+
+### Gitter Done ###
+
+Call the static shortcuts `JsonService.GetUrl(url)` or `JsonService.PostUrl(url, params)` to access JSON-enabled web services.
 	
 	// Get my repos
 	var repositories = JsonService.GetUrl("http://github.com/api/v2/repos/show/kamranayub").repositories;
@@ -27,12 +31,12 @@ Call `JsonService.GetUrl(url)` to access JSON-enabled web services. The class wi
 
 ### The Long Way ###
 
-`JsonService` provides two static shortcuts: `GetUrl(url)` and `PostUrl(url, params)`. Use them when you just need the bare-bones. Otherwise, instantiate it:
+Instantiate it to access all the wonderful properties it offers:
 
 	var gitUri = new Uri("https://github.com/api/v2/json/");
 	var gitService = new JsonService(gitUri);
 
-### Supports Authentication, too ###
+### It Supports Authentication, Too ###
 
 	// Connect to GitHub
 	var gitUri = new Uri("https://github.com/api/v2/json/");
