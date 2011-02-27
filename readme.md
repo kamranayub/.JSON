@@ -219,7 +219,7 @@ This is not a standard of JSON but is used to make your life easier.
 	
 ### At least you have a dictionary ###
 
-`Json` implements `IDictionary<string, object>` just for you, so you can get to any JSON key ever made:
+`Json` can act like a regular `IDictionary<string, object>` just for you, so you can get to any JSON key ever made in case there's any issues:
 
 	dynamic json = Json.Parse("{ 'foo-bar': 'baz', '111': { 'awesome': true } }");
 
