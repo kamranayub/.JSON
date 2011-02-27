@@ -1,0 +1,15 @@
+﻿@model dynamic
+@{ ViewBag.Title = "Basic List"; }
+
+@Html.ActionLink("Back to Examples", "Index")
+
+<h2>kamranayub's GitHub repositories</h2>
+
+<ul>
+@foreach (var r in Model.repositories)
+{ 
+    <li><p><a href="@r.url">@r.name</a> (@r.watchers watching, @r.forks forks)</p>
+        <p>@r.description</p>
+    </li>
+}
+</ul>

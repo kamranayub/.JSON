@@ -61,6 +61,17 @@ namespace DotJson.Tests
 
         }
 
+        /// <summary>
+        ///A test for POST
+        ///</summary>
+        [TestMethod()]
+        public void JsonService_ShouldSupport_Escaping_URLs()
+        {
+            var svc = new JsonService(new Uri("http://marketplace.envato.com/api/v2/"));
+            var json = svc.GET("/new-files-from-user:kayub,codecanyon.json");           
+
+        }
+
         private void CheckRepositoriesResult(dynamic json)
         {
             Assert.IsNotNull(json, "Result is null");

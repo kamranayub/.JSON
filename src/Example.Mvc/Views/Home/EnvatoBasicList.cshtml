@@ -1,0 +1,15 @@
+﻿@model dynamic
+@{ ViewBag.Title = "Envato - Basic List Example"; }
+
+@Html.ActionLink("Back to Examples", "Index")
+
+<h2>kayub's Newest Files</h2>
+
+<p>Ordered by highest sales:</p>
+
+<ul>
+@foreach (var f in (Model.newfilesfromuser as dynamic[]).OrderByDescending(f => f.sales))
+{ 
+    <li><a href="@f.url">@f.item</a> (@f.sales sales) for $@f.cost</li>
+}
+</ul>

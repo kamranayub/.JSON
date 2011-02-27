@@ -191,13 +191,12 @@
                 {
                     client.Headers.Add("Content-type", "application/x-www-form-urlencoded");
 
-                    return Encoding.GetString(client.UploadValues(new Uri(BaseUri, pageMethod), requestData));
+                    return Encoding.GetString(client.UploadValues(pageMethod.ToRelativeUri(BaseUri), requestData));
                 }
                 else
                 {
                     client.QueryString = requestData;
-
-                    return client.DownloadString(new Uri(BaseUri, pageMethod));
+                    return client.DownloadString(pageMethod.ToRelativeUri(BaseUri));
                 }
 
             }
@@ -231,7 +230,7 @@
         /// Creates a new Dynamic JSON dictionary with given (assumes valid) JSON string.
         /// </summary>
         /// <param name="json"></param>
-        public static Json Parse(string json)
+        public static dynamic Parse(string json)
         {
             return new Json(json);
         }
@@ -241,7 +240,7 @@
         /// </summary>
         /// <param name="anonObject"></param>
         /// <returns></returns>
-        public static Json Parse(object anonObject)
+        public static dynamic Parse(object anonObject)
         {
             return new Json(anonObject);
         }
@@ -467,6 +466,30 @@
     /// </summary>
     public static class DotJsonExtensions
     {
+
+        /// <summary>
+        /// Fixes up inconsistencies with how new Uri treats generating a URL. 
+        /// Notably, removing/adding trailing or leading slashes.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="baseUri"></param>
+        /// <returns></returns>
+        public static Uri ToRelativeUri(this string url, Uri baseUri)
+        {
+            var endSlashRx = new System.Text.RegularExpressions.Regex("/+$");
+            var beginSlashRx = new System.Text.RegularExpressions.Regex("^/+");
+            
+            // If no leading slash on baseUri, add it
+            if (!endSlashRx.IsMatch(baseUri.ToString()))
+                baseUri = new Uri(baseUri + "/");
+
+            // Remove leading slash on relative, if any
+            if (beginSlashRx.IsMatch(url))
+                url = beginSlashRx.Replace(url, String.Empty);
+
+            return new Uri(baseUri, Uri.EscapeDataString(url));
+        }
+
         /// <summary>
         /// Gets an anonymous object's properties as a NameValueCollection.
         /// </summary>

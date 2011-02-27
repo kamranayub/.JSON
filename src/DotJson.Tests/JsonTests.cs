@@ -148,6 +148,22 @@ namespace DotJson.Tests
         }
 
         [TestMethod]
+        public void Json_ShouldHandle_CompactForms_With_DuplicateOriginals2()
+        {
+            var json = "{ 'foobar': 1, 'foo_bar': 2 }";
+
+            dynamic x = Json.Parse(json);
+
+            Assert.IsNotNull(x);
+
+            Assert.IsNotNull(x.foobar);
+            Assert.AreEqual(1, x.foobar);
+
+            Assert.IsNotNull(x["foo_bar"]);
+            Assert.AreEqual(2, x["foo_bar"]);
+        }
+
+        [TestMethod]
         public void Json_ShouldHandle_Numerical_Keys()
         {
             var json = "{ '111': true }";
@@ -223,13 +239,19 @@ namespace DotJson.Tests
         [TestMethod]
         public void Json_ShouldAllow_ManipulationOfArrays_With_ComplexLINQ()
         {
-            var json = new { array = new object[] { "a", "b", "c", 0 } };
-            dynamic x = Json.Parse(json);
+            var json = new
+            {
+                items = new object[] {
+                    new { sales = 5 },
+                    new { sales = 20 },
+                    new { sales = 8 }
+                }
+            };
 
-            Assert.IsNotNull(x);
-            Assert.AreEqual("a", 
-                (x.array as object[])
-                .Cast<string>().FirstOrDefault(y => y == "a"));
+            dynamic[] items = Json.Parse(json).items;
+
+            Assert.IsNotNull(items);
+            Assert.AreEqual(20, items.OrderByDescending(f => f.sales).First().sales);
         }
     }
 }

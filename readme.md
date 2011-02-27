@@ -12,37 +12,29 @@ View full examples in */src/*.
 
 Create a new `JsonService` to access JSON-enabled web services. The class will expect that all results will be returned in JSON. It exposes several properties that you can manipulate for more control over the request.
 	
+	// Connect to GitHub
 	var gitUri = new Uri("https://github.com/api/v2/json/");
-	var gitService = new JsonService(gitUri));
-	
-	// Authentication? No problem. Force authentication on first request for GitHub.
-	gitService.AddBasicAuth("kamranayub/token", "xxx", force: true);	
-		
-	// Use the GET to get, POST to post
-	// Each takes a second anonymous object or Dictionary to represent query string
-	// name/value pairs.
-	// They return "dynamic" types.
-	dynamic repository = gitService.GET("repos/show/kamranayub/dotjson").repository;
-	
-	// Access as properties
-	string repoName = repository.name;
-	string repoDesc = repository.description;
+	var gitService = new JsonService(gitUri);
 
-	// Access arrays
-	dynamic repositories = gitService.GET("repos/kamranayub").repositories;
+	// Get my repos
+	var repositories = gitService.GET("repos/show/kamranayub").repositories;
 	
-	foreach (dynamic r in repositories) {
-		// Do something
-		// r.name;
-		// r.description;
-		// r.url
-	}
+	return View(repositories);
 
-	// It will even handle basic types for you
-	int repoWatchers = repository.watchers;
-	DateTime repoCreated = repository.created_at;
-	bool repoPrivate = repository.private;
-	Uri repoUrl = repository.url;
+### Supports Authentication, too ###
+
+	// Connect to GitHub
+	var gitUri = new Uri("https://github.com/api/v2/json/");
+	var gitService = new JsonService(gitUri);
+
+	// Authenticate to GitHub using OAuth token
+	// Force authentication on first request for GitHub
+	gitService.AddBasicAuth("kamranayub/token", "xxx", true);
+
+	// Get me
+	var user = gitService.GET("user/show").user;
+
+	return View(user);
 
 ## Standalone JSON Parsing - `Json` ##
 
@@ -79,41 +71,68 @@ I mean, who's going to stop you?
 	
 	// Or manipulate it like other examples
 	var json = Json.Parse(myJson);
+
+## Oh yah, LINQ works too. ##
+
+*"I heard you can't use dynamics with LINQ... bummer!" ~ You*
+
+You sure about that?
+
+	var json = new
+	{
+		items = new object[] {
+			new { sales = 5 },
+			new { sales = 20 },
+			new { sales = 8 }
+		}
+	};
+	
+	// Magic!
+	dynamic[] items = Json.Parse(json).items;
+	
+	// Returns 20
+	return items
+		.OrderByDescending(f => f.sales)
+		.First().sales;
+
+D'oh! To use LINQ, just cast a property you know to be an array to `dynamic[]` and all will be forgiven, grasshopper. The trick is to explicitly declare the dynamic property as a dynamic array, then the compiler understands that it should resolve it at runtime.
+
+## Basic Type Inferrance ##
+
+The Microsoft serialization API converts most primitive types fine, but .JSON goes a step further:
+
+	DateTime repoCreated = json.repository.created_at;
+	Uri repoUrl = json.repository.url;
 	
 ## Special characters in key IDs? No problem. ##
 
-`Json` implements `IDictionary<string, object>` just for you, so you can get to any JSON key ever made:
+### Compact Names ###
 
-	dynamic json = Json.Parse("{ 'foo-bar': 'baz', '111': { 'awesome': true } }");
-
-	string fooBar = json["foo-bar"];
-	bool awesome = json["111"].awesome;
-
-Or, if no naming conflicts exist, `Json` also supports compact versions of properties (strips all non-allowed characters for CLS identifiers).
+If no naming conflicts exist, `Json` also supports compact versions of JSON key names (strips all non-allowed characters for CLS identifiers).
 
 A compact name is always secondary; that is, an exact match will always return first before `Json` will check the compact key dictionary.
 
-The following would all be accessible from compact equivalents, as long as an _actual_ key by that name doesn't exist:
+The following would all be accessible from compact equivalents, as long as an _actual_ key by the compact equivalent doesn't exist:
 
- - foo-bar => foobar
- - Foo-Bar => FooBar
- - foo-Bar => fooBar
+ - `foo-bar` => `foobar`
+ - `Foo-Bar` => `FooBar`
+ - `foo-Bar` => `fooBar`
 	
-If an actual key *does* exist, you need to access the special-character key via the dictionary:
+If an actual key *does* exist, you need to access it via the dictionary:
 
-	dynamic json = "{ 'foobar': 1, 'foo-bar': 2 }";
+	var json = "{ 'foobar': 1, 'foo-bar': 2 }";
 	
 	// .foobar will return 1 as its an exact match
 	// ["foo-bar"] will return 2 as expected
  
-This is not a standard of JSON but is used to help when dynamically accessing the JSON properties and provider for ease of use.
- 
-### Example ###
+This is not a standard of JSON but is used to make your life easier.
 
-	// In this case, both "foo-bar" and "Foo-Bar" are 
-	// accessible both in C# and VB.NET due to the 
-	// beauty of dynamic typing and having control over lookups.
-	// "foo_bar" does not need a compact equivalent.
+#### Example ####
+
+	// Lookups are case-sensitive to be safe.
+	// "foo_bar"'s compact is "foobar" but if
+	// you requested "foobar" it is an exact match
+	// for an existing key, so watch out.
 	string f1 = json.foobar;
 	string f2 = json.FooBar;
 	string f3 = json.foo_bar;
@@ -122,14 +141,13 @@ This is not a standard of JSON but is used to help when dynamically accessing th
 	// because it is already taken by "Foo-Bar"
 	string f4 = json["Foo--Bar"];
 	
+### At least you have a dictionary ###
+
+`Json` implements `IDictionary<string, object>` just for you, so you can get to any JSON key ever made:
+
+	dynamic json = Json.Parse("{ 'foo-bar': 'baz', '111': { 'awesome': true } }");
+
+	string fooBar = json["foo-bar"];
+	bool awesome = json["111"].awesome;
+	
 If a key is named the same as a previous key, its value will be overwritten as per the standard.
-
-## So what about LINQ? ##
-
-Because these objects and properties are built dynamically, .NET does not support lambda expressions when using dynamics. However, you can do it manually:
-
-	var json = new { array = new object[] { "a", "b", "c", 0 } };
-	dynamic x = Json.Parse(json);
-
-	returns (x.array as object[])
-		.Cast<string>().FirstOrDefault(y => y == "a"));

@@ -1,0 +1,19 @@
+﻿@model dynamic
+@{ ViewBag.Title = "Basic Auth Example"; }
+
+@Html.ActionLink("Back to Examples", "Index")
+
+@if (Model != null)
+{ 
+    <h2>@Model.name</h2>
+
+    <ul>
+        <li>Email: @Model.email</li>
+        <li>Public Repo Count: @Model.public_repo_count</li>
+        <li>Private Repo Count: @Model.total_private_repo_count</li>
+        <li>Disk usage: @Model.disk_usage</li>
+    </ul>
+}
+else { 
+    <p>@ViewBag.Error</p>
+}
