@@ -1,7 +1,7 @@
 ﻿.JSON is For Winners
 ====================
 
-**.JSON** is a group of classes **in one file** that help you easily work with JSON as a **dynamically typed object** (`myJson.someProperty[0].name`), obtained from from web services, strings, or anonymous objects.
+**.JSON** is a group of classes **in one file** that help you easily work with JSON as a **dynamically typed object** (`myJson.someProperty[0].name`), obtained from web services, strings, or anonymous objects.
 
 It's made up of syntactic sugar, spice, and everything nice.
 
