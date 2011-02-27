@@ -1,4 +1,5 @@
-﻿# .JSON is For Winners #
+﻿.JSON is For Winners
+====================
 
 *.JSON* is a single-file group of classes that help you easily work with JSON as a *dynamically typed object* (`myJson.someProperty[0].name`), obtained from from web services, strings, or anonymous objects.
 
