@@ -72,7 +72,7 @@ namespace DotJson
         }
 
         /// <summary>
-        /// Shortcut for new JsonService(baseUri).GET(relative)
+        /// Shortcut for JsonService.Url(baseUri).Get()
         /// </summary>
         /// <param name="url">Full API URL to the GET method</param>
         /// <returns>Json</returns>
@@ -82,30 +82,32 @@ namespace DotJson
         }
 
         /// <summary>
-        /// Shortcut for new JsonService(baseUri).GET(relative)
+        /// Shortcut for JsonService.Url(baseUri).Get(params)
         /// </summary>
         /// <param name="url">Full API URL to the GET method</param>
+        /// <param name="queryParams">Key/value pair query data parameters (e.g. ?key=value)</param>
         /// <returns>Json</returns>
-        public static dynamic GetFrom(string url, object options)
+        public static dynamic GetFrom(string url, object queryParams)
         {
-            return JsonService.For(url).Get(options);
+            return JsonService.For(url).Get(queryParams);
         }
 
         /// <summary>
-        /// Shortcut for new JsonService(baseUri).GET(relative)
+        /// Shortcut for JsonService.Url(baseUri).Get(params)
         /// </summary>
         /// <param name="url">Full API URL to the GET method</param>
+        /// <param name="queryData">Key/value pair query data parameters (e.g. ?key=value)</param>
         /// <returns>Json</returns>
-        public static dynamic GetFrom(string url, IDictionary<string, string> options)
+        public static dynamic GetFrom(string url, IDictionary<string, string> queryData)
         {
-            return JsonService.For(url).Get(options);
+            return JsonService.For(url).Get(queryData);
         }
 
         /// <summary>
-        /// Shortcut for new JsonService(baseUri).POST(relative, params)
+        /// Shortcut for JsonService.Url(baseUri).Post(params)
         /// </summary>
         /// <param name="url">Full API URL to the GET method</param>
-        /// <param name="dataParams">Key/value pair query parameters (e.g. ?key=value)</param>
+        /// <param name="dataParams">Key/value pair form data parameters (e.g. ?key=value)</param>
         /// <returns>Json</returns>
         public static dynamic PostTo(string url, object dataParams)
         {
@@ -113,10 +115,10 @@ namespace DotJson
         }
 
         /// <summary>
-        /// Shortcut for new JsonService(baseUri).POST(relative, params)
+        /// Shortcut for JsonService.Url(baseUri).Post(params)
         /// </summary>
         /// <param name="url">Full API URL to the POST method</param>
-        /// <param name="dataParams">String dictionary of Key/value pair query parameters (e.g. ?key=value)</param>
+        /// <param name="dataParams">String dictionary of Key/value pair form data parameters (e.g. ?key=value)</param>
         /// <returns>Json</returns>
         public static dynamic PostTo(string url, IDictionary<string, string> dataParams)
         {
@@ -134,9 +136,7 @@ namespace DotJson
         /// <returns></returns>
         public JsonService UseEncoding(Encoding encoding)
         {
-            this.Encoding = encoding;
-
-            return this;
+            this.Encoding = encoding; return this;
         }
 
         /// <summary>
@@ -145,9 +145,7 @@ namespace DotJson
         /// <returns></returns>
         public JsonService ForceAuthorization()
         {
-            this.ForceSendAuthorization = true;
-
-            return this;
+            this.ForceSendAuthorization = true; return this;
         }
 
         /// <summary>
@@ -308,9 +306,7 @@ namespace DotJson
             using (var client = new WebClient())
             {
                 if (this.Credentials == null)
-                {
                     client.UseDefaultCredentials = true;
-                }
                 else
                 {
                     // Force sending credentials on first request
@@ -351,11 +347,7 @@ namespace DotJson
             }
         }
 
-        private enum HttpMethod
-        {
-            GET,
-            POST
-        }
+        private enum HttpMethod { GET, POST }
 
         #endregion
     }
@@ -385,10 +377,7 @@ namespace DotJson
         /// <returns></returns>
         public object this[string key]
         {
-            get
-            {
-                return this.DynamicDictionary[key];
-            }
+            get { return this.DynamicDictionary[key]; }
         }
 
         #region Static Methods
@@ -398,7 +387,7 @@ namespace DotJson
         /// </summary>
         /// <param name="json">A JSON string to convert</param>
         /// <returns>Json</returns>
-        public static dynamic Parse(string json, bool inferTypes = true)
+        public static dynamic Parse(string json)
         {
             return new Json(json);
         }
@@ -420,7 +409,7 @@ namespace DotJson
         /// <returns>A JSON String</returns>
         public static string Stringify(object anonObject)
         {
-            return new JavaScriptSerializer().Serialize(anonObject);
+            return new Json(anonObject).ToString();
         }
 
         #endregion
@@ -428,11 +417,8 @@ namespace DotJson
         #region Constructors
 
         private Json(string json)
-        {
-            this.OriginalObject = new JavaScriptSerializer().DeserializeObject(json);
-
-            TranslateDictionary(new JavaScriptSerializer().Deserialize<IDictionary<string, dynamic>>(json));
-        }
+            : this(new JavaScriptSerializer().Deserialize<IDictionary<string, object>>(json))
+        { }
 
         private Json(object anonObject)
             : this(new JavaScriptSerializer().Serialize(anonObject))
@@ -444,7 +430,7 @@ namespace DotJson
         /// This constructor gets called for sub-properties in the Dynamic Dictionary, recursively.
         /// </summary>
         /// <param name="dictionary"></param>
-        private Json(IDictionary<string, dynamic> dictionary)
+        private Json(IDictionary<string, object> dictionary)
         {
             this.OriginalObject = dictionary;
 
@@ -524,7 +510,8 @@ namespace DotJson
 
             if (this.DynamicDictionary.ContainsKey(key))
                 result = this.DynamicDictionary[key];
-            else result = null;
+            else 
+                result = null;
 
             return result != null;
         }
