@@ -1,4 +1,12 @@
-﻿namespace DotJson
+﻿/******************************
+ * .JSON - Classes for dealing with dynamic JSON
+ * http://github.com/kamranayub/.JSON/
+ * 
+ * Copyright 2011, Kamran Ayub. 
+ * Dual licensed under the MIT or GPL Version 2 licenses (just like jQuery)
+ * 
+ ******************************/
+namespace DotJson
 {
     using System;
     using System.Collections.Generic;
