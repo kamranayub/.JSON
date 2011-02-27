@@ -74,8 +74,8 @@ namespace DotJson
         /// <summary>
         /// Shortcut for new JsonService(baseUri).GET(relative)
         /// </summary>
-        /// <param name="url">Full API URL to the GET metod</param>
-        /// <returns></returns>
+        /// <param name="url">Full API URL to the GET method</param>
+        /// <returns>Json</returns>
         public static dynamic GetFrom(string url)
         {
             return JsonService.For(url).Get();
@@ -84,8 +84,8 @@ namespace DotJson
         /// <summary>
         /// Shortcut for new JsonService(baseUri).GET(relative)
         /// </summary>
-        /// <param name="url">Full API URL to the GET metod</param>
-        /// <returns></returns>
+        /// <param name="url">Full API URL to the GET method</param>
+        /// <returns>Json</returns>
         public static dynamic GetFrom(string url, object options)
         {
             return JsonService.For(url).Get(options);
@@ -94,8 +94,8 @@ namespace DotJson
         /// <summary>
         /// Shortcut for new JsonService(baseUri).GET(relative)
         /// </summary>
-        /// <param name="url">Full API URL to the GET metod</param>
-        /// <returns></returns>
+        /// <param name="url">Full API URL to the GET method</param>
+        /// <returns>Json</returns>
         public static dynamic GetFrom(string url, IDictionary<string, string> options)
         {
             return JsonService.For(url).Get(options);
@@ -104,9 +104,9 @@ namespace DotJson
         /// <summary>
         /// Shortcut for new JsonService(baseUri).POST(relative, params)
         /// </summary>
-        /// <param name="url">Full API URL to the GET metod</param>
+        /// <param name="url">Full API URL to the GET method</param>
         /// <param name="dataParams">Key/value pair query parameters (e.g. ?key=value)</param>
-        /// <returns></returns>
+        /// <returns>Json</returns>
         public static dynamic PostTo(string url, object dataParams)
         {
             return JsonService.For(url).Post(dataParams);
@@ -115,9 +115,9 @@ namespace DotJson
         /// <summary>
         /// Shortcut for new JsonService(baseUri).POST(relative, params)
         /// </summary>
-        /// <param name="url">Full API URL to the POST metod</param>
+        /// <param name="url">Full API URL to the POST method</param>
         /// <param name="dataParams">String dictionary of Key/value pair query parameters (e.g. ?key=value)</param>
-        /// <returns></returns>
+        /// <returns>Json</returns>
         public static dynamic PostTo(string url, IDictionary<string, string> dataParams)
         {
             return JsonService.For(url).Post(dataParams);
@@ -208,7 +208,7 @@ namespace DotJson
         /// <returns>Json</returns>
         public dynamic Get(object queryParams)
         {
-            return Get(string.Empty, queryParams);
+            return Get(String.Empty, queryParams);
         }
 
         /// <summary>
@@ -219,7 +219,7 @@ namespace DotJson
         /// <returns>Json</returns>
         public dynamic Get(IDictionary<string, string> queryParams)
         {
-            return Get(string.Empty, queryParams);
+            return Get(String.Empty, queryParams);
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace DotJson
         /// <returns></returns>
         public dynamic Get(string pageMethod, object queryParams)
         {
-            return PerformGET(pageMethod, queryParams.ToNameValueCollection());
+            return PerformRequest(pageMethod, HttpMethod.GET, queryParams.ToNameValueCollection());
         }
 
         /// <summary>
@@ -243,7 +243,7 @@ namespace DotJson
         /// <returns></returns>
         public dynamic Get(string pageMethod, IDictionary<string, string> queryParams)
         {
-            return PerformGET(pageMethod, queryParams.ToNameValueCollection());
+            return PerformRequest(pageMethod, HttpMethod.GET, queryParams.ToNameValueCollection());
         }
 
         /// <summary>
@@ -254,8 +254,7 @@ namespace DotJson
         /// <returns></returns>
         public dynamic Post(object formData)
         {
-            return PerformPOST(String.Empty, formData.ToNameValueCollection());
-
+            return Post(String.Empty, formData.ToNameValueCollection());
         }
 
         /// <summary>
@@ -266,8 +265,7 @@ namespace DotJson
         /// <returns></returns>
         public dynamic Post(IDictionary<string, string> formData)
         {
-            return PerformPOST(String.Empty, formData.ToNameValueCollection());
-
+            return Post(String.Empty, formData);
         }
 
         /// <summary>
@@ -279,7 +277,7 @@ namespace DotJson
         /// <returns></returns>
         public dynamic Post(string pageMethod, object formData)
         {
-            return PerformPOST(pageMethod, formData.ToNameValueCollection());
+            return PerformRequest(pageMethod, HttpMethod.POST, formData.ToNameValueCollection());
         }
 
         /// <summary>
@@ -291,27 +289,12 @@ namespace DotJson
         /// <returns></returns>
         public dynamic Post(string pageMethod, IDictionary<string, string> formData)
         {
-            return PerformPOST(pageMethod, formData.ToNameValueCollection());
+            return PerformRequest(pageMethod, HttpMethod.POST, formData.ToNameValueCollection());
         }
 
         #endregion
 
         #region Private Helpers
-
-        private dynamic PerformGET(string pageMethod, NameValueCollection queryData)
-        {
-            return Json.Parse(PerformRequest(pageMethod, HttpMethod.GET, queryData));
-        }
-
-        private dynamic PerformPOST(string pageMethod, NameValueCollection formData)
-        {
-            if (formData != null)
-            {
-                return Json.Parse(PerformRequest(pageMethod, HttpMethod.POST, formData));
-            }
-            else
-                throw new ArgumentNullException("formData", "For POST, formData cannot be null.");
-        }
 
         /// <summary>
         /// Wraps WebClient request in single method.
@@ -319,8 +302,8 @@ namespace DotJson
         /// <param name="pageMethod"></param>
         /// <param name="method"></param>
         /// <param name="requestData"></param>
-        /// <returns></returns>
-        private string PerformRequest(string pageMethod, HttpMethod method, NameValueCollection requestData)
+        /// <returns>Json</returns>
+        private dynamic PerformRequest(string pageMethod, HttpMethod method, NameValueCollection requestData)
         {
             using (var client = new WebClient())
             {
@@ -352,14 +335,17 @@ namespace DotJson
 
                 if (method == HttpMethod.POST)
                 {
+                    if (requestData == null)
+                        throw new ArgumentNullException("requestData", "For POST, form data cannot be null.");
+
                     client.Headers.Add("Content-type", "application/x-www-form-urlencoded");
 
-                    return Encoding.GetString(client.UploadValues(pageMethod.ToRelativeUri(BaseUri), requestData));
+                    return Json.Parse(Encoding.GetString(client.UploadValues(pageMethod.ToRelativeUri(BaseUri), requestData)));
                 }
                 else
                 {
                     client.QueryString = requestData;
-                    return client.DownloadString(pageMethod.ToRelativeUri(BaseUri));
+                    return Json.Parse(client.DownloadString(pageMethod.ToRelativeUri(BaseUri)));
                 }
 
             }
@@ -382,11 +368,11 @@ namespace DotJson
     public class Json : DynamicObject
     {
         // It's case-sensitive, baby!
-        private readonly IDictionary<string, dynamic> DynamicDictionary = 
+        private readonly IDictionary<string, dynamic> DynamicDictionary =
             new Dictionary<string, dynamic>(StringComparer.Ordinal);
 
         // Key: Compact key, Value: original value
-        private readonly IDictionary<string, string> KeyDictionary = 
+        private readonly IDictionary<string, string> KeyDictionary =
             new Dictionary<string, string>(StringComparer.Ordinal);
 
         // Store original deserialized object for serialization
@@ -410,8 +396,9 @@ namespace DotJson
         /// <summary>
         /// Creates a new Dynamic JSON dictionary with given (assumes valid) JSON string.
         /// </summary>
-        /// <param name="json"></param>
-        public static dynamic Parse(string json)
+        /// <param name="json">A JSON string to convert</param>
+        /// <returns>Json</returns>
+        public static dynamic Parse(string json, bool inferTypes = true)
         {
             return new Json(json);
         }
@@ -419,8 +406,8 @@ namespace DotJson
         /// <summary>
         /// Creates a new Dynamic JSON dictionary from given anonymous object/
         /// </summary>
-        /// <param name="anonObject"></param>
-        /// <returns></returns>
+        /// <param name="anonObject">An object to convert to JSON</param>
+        /// <returns>Json</returns>
         public static dynamic Parse(object anonObject)
         {
             return new Json(anonObject);
@@ -429,8 +416,8 @@ namespace DotJson
         /// <summary>
         /// Converts an object to a JSON string.
         /// </summary>
-        /// <param name="anonObject"></param>
-        /// <returns></returns>
+        /// <param name="anonObject">Object to serialize</param>
+        /// <returns>A JSON String</returns>
         public static string Stringify(object anonObject)
         {
             return new JavaScriptSerializer().Serialize(anonObject);
@@ -502,9 +489,8 @@ namespace DotJson
 
                     if (objects.Any())
                     {
-                        value = objects
-                            .Select(o => o is IDictionary<string, dynamic> ?
-                                new Json(o as IDictionary<string, dynamic>) : o).ToArray();
+                        value = objects.Select(o => o is IDictionary<string, dynamic> ?
+                                    new Json(o as IDictionary<string, dynamic>) : o).ToArray();
                     }
                 }
 
@@ -516,38 +502,30 @@ namespace DotJson
             }
         }
 
-        /// <summary>
-        /// Tries to look for a dictionary key by the typed property name (e.g. x.property1).
-        /// </summary>
-        /// <param name="jsonKeyPath"></param>
-        /// <returns></returns>
-        private dynamic GetPropertyValue(string jsonKeyPath)
-        {
-            // Get the key to use
-            // If no key exists, try to get the compact version
-            var key = (!this.DynamicDictionary.ContainsKey(jsonKeyPath) &&
-                this.KeyDictionary.ContainsKey(jsonKeyPath)) ?
-                this.KeyDictionary[jsonKeyPath] : jsonKeyPath;
-
-            if (this.DynamicDictionary.ContainsKey(key) || key != null)
-                return this.DynamicDictionary[key];
-
-            return null;
-        }
-
         #endregion
 
         #region DynamicObject Overrides
 
         /// <summary>
-        /// Get result of dynamic member
+        /// Tries to look for a dictionary key by the typed property name (e.g. x.property1).
         /// </summary>
         /// <param name="binder"></param>
         /// <param name="result"></param>
         /// <returns></returns>
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            result = GetPropertyValue(binder.Name);
+            var property = binder.Name;
+
+            // Get the key to use
+            // If no existing key exists, try to get the compact version
+            var key = (!this.DynamicDictionary.ContainsKey(property) &&
+                this.KeyDictionary.ContainsKey(property)) ?
+                this.KeyDictionary[property] : property;
+
+            if (this.DynamicDictionary.ContainsKey(key))
+                result = this.DynamicDictionary[key];
+            else result = null;
+
             return result != null;
         }
 
@@ -561,7 +539,6 @@ namespace DotJson
         public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
             result = DynamicDictionary.GetType().InvokeMember(binder.Name, BindingFlags.InvokeMethod, null, this.DynamicDictionary, args);
-
             return result != null;
         }
 
@@ -579,23 +556,27 @@ namespace DotJson
         /// Fixes up inconsistencies with how new Uri treats generating a URL. 
         /// Notably, removing/adding trailing or leading slashes.
         /// </summary>
-        /// <param name="url"></param>
+        /// <param name="relativeUrl"></param>
         /// <param name="baseUri"></param>
         /// <returns></returns>
-        public static Uri ToRelativeUri(this string url, Uri baseUri)
+        public static Uri ToRelativeUri(this string relativeUrl, Uri baseUri)
         {
+            // Ignore if no relative URL
+            if (String.IsNullOrEmpty(relativeUrl))
+                return baseUri;
+
             var endSlashRx = new System.Text.RegularExpressions.Regex("/+$");
             var beginSlashRx = new System.Text.RegularExpressions.Regex("^/+");
 
-            // If no leading slash on baseUri, add it (ignore if its absolute)
-            if (!endSlashRx.IsMatch(baseUri.ToString()) && !baseUri.IsAbsoluteUri)
+            // If no ending slash on baseUri, add it
+            if (!endSlashRx.IsMatch(baseUri.ToString()))
                 baseUri = new Uri(baseUri + "/");
 
             // Remove leading slash on relative, if any
-            if (beginSlashRx.IsMatch(url))
-                url = beginSlashRx.Replace(url, String.Empty);
+            if (beginSlashRx.IsMatch(relativeUrl))
+                relativeUrl = beginSlashRx.Replace(relativeUrl, String.Empty);
 
-            return new Uri(baseUri, Uri.EscapeDataString(url));
+            return new Uri(baseUri, Uri.EscapeDataString(relativeUrl));
         }
 
         /// <summary>
@@ -612,9 +593,7 @@ namespace DotJson
 
             foreach (var p in thing.GetType().GetProperties())
             {
-                var value = p.GetValue(thing, null);
-
-                nvCollection.Add(p.Name, value.ToString());
+                nvCollection.Add(p.Name, p.GetValue(thing, null).ToString());
             }
 
             return nvCollection;
@@ -648,7 +627,7 @@ namespace DotJson
         public static string ToCLSId(this string input)
         {
             return new System.Text.RegularExpressions.Regex(@"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Nd}\p{Nl}\p{Mn}\p{Mc}\p{Cf}\p{Pc}\p{Lm}]")
-                .Replace(input, string.Empty);
+                .Replace(input, String.Empty);
         }
 
         /// <summary>
@@ -658,20 +637,15 @@ namespace DotJson
         /// <returns></returns>
         public static dynamic TryConvert(this object thing)
         {
-            DateTime theDate;
-            Uri theUri;
+            DateTime theDate; Uri theUri;
 
             // Try converting dates
             if (thing is string && DateTime.TryParse(thing.ToString(), out theDate))
-            {
                 return theDate;
-            }
 
             // Try converting absolute URLs
             if (thing is string && Uri.TryCreate(thing.ToString(), UriKind.Absolute, out theUri))
-            {
                 return theUri;
-            }
 
             return thing;
         }
