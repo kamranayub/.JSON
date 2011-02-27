@@ -22,11 +22,11 @@ The `JsonService` class will expect that all results will be returned in JSON. I
 
 ### Gitter Done ###
 
-Call the static shortcuts `JsonService.GetUrl(url)` or `JsonService.PostUrl(url, params)` to access JSON-enabled web services.
+Call the static shortcuts `JsonService.GetFrom(url, [queryParams])` or `JsonService.PostTo(url, params)` to access JSON-enabled web services.
 	
 	// GET
 	// Get my repos
-	var repositories = JsonService.GetUrl("https://github.com/api/v2/repos/show/kamranayub").repositories;
+	var repositories = JsonService.GetFrom("https://github.com/api/v2/repos/show/kamranayub").repositories;
 	
 	return View(repositories);
 	
@@ -41,40 +41,78 @@ Call the static shortcuts `JsonService.GetUrl(url)` or `JsonService.PostUrl(url,
 	gitParams["values[blog]"] = "http://github.com/" + username;
 
 	// Update blog
-	var response = JsonService.PostUrl("https://github.com/api/v2/json/user/show/" + username, gitParams);
+	var response = JsonService.PostTo("https://github.com/api/v2/json/user/show/" + username, gitParams);
 	
 	return response.user.blog // This will be http://github.com/username
 
-### The Long Way ###
+### The Fluent Way ###
 
-Instantiate it to access all the wonderful properties it offers:
+Use `JsonService.For` to access the fluent interface it offers:
 
-	var gitUri = new Uri("https://github.com/api/v2/json/");
-	var gitService = new JsonService(gitUri);
+	var gitService = JsonService.For("https://github.com/api/v2/json/");
 
 ### It Supports Authentication, Too ###
 
 	// Connect to GitHub
-	var gitUri = new Uri("https://github.com/api/v2/json/");
-	var gitService = new JsonService(gitUri);
-
 	// Authenticate to GitHub using OAuth token
 	// Force authentication on first request for GitHub
-	gitService.AddBasicAuth("kamranayub/token", "xxx", true);
+	var gitService = JsonService.For("https://github.com/api/v2/json/user/show/")
+						.AuthenticateAsBasic(username: "kamranayub/token", password: "xxx", force: true);
 
 	// Get me
-	var user = gitService.GET("user/show").user;
+	var user = gitService.Get().user;
 
 	return View(user);
 
-### Properties ###
+### Fluent Interface ###
 
-- Credentials (`ICredentials`): default null
-  - Gets or sets the credentials used for the request
-- Encoding (`Encoding`): default UTF8
-  - Gets or sets the encoding used for the request
-- ForceSendAuthorization (`bool`): default false
-  - Gets or sets a value indicating whether to force sending the `Authorization` HTTP header on the first request
+#### `.For(string url)` ####
+
+Returns a new `JsonService` reference. `url` can be the base API url (e.g. http://github.com/api/v2/json/) or the full method url (e.g. http://github.com/api/v2/json/user/show/kamranayub).
+
+#### `.AuthenticateAs(ICredentials credentials)` ####
+
+Sets the `ICredentials` used for the request. **Default:** `null`
+  
+#### `.AuthenticateAsBasic(string username, string password, [bool force = false])` ####
+
+Sets the Basic authentication used for the request. **force** _forces_ an Authorization HTTP header to be sent on the request, even if no challenge was received.
+  
+#### `.AuthenticateAsBasic(NetworkCredential credential, [bool force = false])` ####
+
+Sets the Basic authentication used for the request.  
+  
+#### `.UseEncoding(Encoding encoding)` ####
+
+Sets the encoding used for the request. **Default:** `UTF8`
+  
+#### `.ForceAuthorization()` ####
+
+Forces an Authorization HTTP header to be sent on the request, even if no challenge was received. You do not need to do this if using the `AuthenticateAs` methods. **Default:** `false`  
+
+#### `.Get([string pageMethod], [object queryParams])` ####
+
+Gets from the given URL. If `pageMethod` is present, appends it to the base URL. If not, gets from base URL only. 
+
+`queryparams` is an **optional** anonymous object that will be converted to a name value collection (e.g. `new { key = "value" }`)
+  
+#### `.Get([string pageMethod], [IDictionary<string, string> queryParams])` ####
+
+Gets from the given URL. If `pageMethod` is present, appends it to the base URL. If not, gets from base URL only. 
+
+`queryparams` is an **optional** string dictionary that will be converted to a name value collection (e.g. `new Dictionary<string, string>() { {"key", "value" } }`)
+  
+#### `.Post([string pageMethod], object dataParams)` ####
+
+Posts to the given URL. If `pageMethod` is present, appends it to the base URL. If not, gets from base URL only. 
+
+`dataParams` is an **optional** anonymous object that will be converted to a name value collection (e.g. `new { key = "value" }`)  
+  
+#### `.Post([string pageMethod], [IDictionary<string, string> dataParams])` ####
+
+Posts to the given URL. If `pageMethod` is present, appends it to the base URL. If not, gets from base URL only. 
+
+`dataParams` is an **optional** string dictionary that will be converted to a name value collection (e.g. `new Dictionary<string, string>() { {"key", "value" } }`)
   
 ## Standalone JSON Parsing - `Json` ##
 

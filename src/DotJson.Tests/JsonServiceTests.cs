@@ -15,7 +15,7 @@ namespace DotJson.Tests
     public class JsonServiceTests
     {
 
-        private Uri _uri = new Uri("http://github.com/api/v2/json/");
+        private string _uri = "http://github.com/api/v2/json/";
 
         /// <summary>
         ///A test for GET
@@ -23,12 +23,11 @@ namespace DotJson.Tests
         [TestMethod()]
         public void JsonService_GET_ShouldReturn_Value_ForGitHubService()
         {
-            var svc = new JsonService(_uri);
-            var json = svc.GET("repos/show/kamranayub");
+            var json = JsonService.For(_uri).Get("repos/show/kamranayub");
 
             CheckRepositoriesResult(json);
 
-            CheckRepositoriesResult(JsonService.GetUrl("https://github.com/api/v2/json/repos/show/kamranayub"));
+            CheckRepositoriesResult(JsonService.GetFrom("https://github.com/api/v2/json/repos/show/kamranayub"));
         }
 
         /// <summary>
@@ -37,14 +36,13 @@ namespace DotJson.Tests
         [TestMethod()]
         public void JsonService_GET_ShouldAccept_BasicAuth_Credentials()
         {
-            var svc = new JsonService(_uri);
-
             // Setup
             // For GitHub, need to forcefully send the authorization header
-            svc.AddBasicAuth("kamranayub/token", 
-                System.IO.File.ReadAllText("../../../git_token.private"), true);
+            var svc = JsonService.For(_uri)
+                        .AuthenticateAsBasic("kamranayub/token", 
+                            System.IO.File.ReadAllText("../../../git_token.private"), true);
 
-            var json = svc.GET("user/show/kamranayub");
+            var json = svc.Get("user/show/kamranayub");
 
             Assert.IsNotNull(json);
             Assert.IsNotNull(json.user);
@@ -64,15 +62,14 @@ namespace DotJson.Tests
                 {"values[blog]", "http://intrepidstudios.com/blog/?POST-test" }
             };
 
-            var svc = new JsonService(_uri);
-            var json = svc.POST("user/show/kamranayub", setBlog);
+            var json = JsonService.PostTo(_uri + "user/show/kamranayub", setBlog);
 
             Assert.AreEqual("http://intrepidstudios.com/blog/?POST-test", json.user.blog.ToString());
 
             // Revert
             setBlog["values[blog]"] = "http://intrepidstudios.com/blog/";
 
-            json = svc.POST("user/show/kamranayub", setBlog);
+            json = JsonService.PostTo(_uri + "user/show/kamranayub", setBlog);
 
             Assert.AreEqual("http://intrepidstudios.com/blog/", json.user.blog.ToString());
         }
@@ -83,9 +80,10 @@ namespace DotJson.Tests
         [TestMethod()]
         public void JsonService_ShouldSupport_Escaping_URLs()
         {
-            var svc = new JsonService(new Uri("http://marketplace.envato.com/api/v2/"));
-            var json = svc.GET("/new-files-from-user:kayub,codecanyon.json");           
+            var json = JsonService.For("http://marketplace.envato.com/api/v2/")
+                            .Get("/new-files-from-user:kayub,codecanyon.json");           
 
+            // If it didn't work, it'd throw an exception
         }
 
         private void CheckRepositoriesResult(dynamic json)

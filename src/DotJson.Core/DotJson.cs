@@ -2,13 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Net;
     using System.Collections.Specialized;
     using System.Dynamic;
-    using System.Web.Script.Serialization;
+    using System.Linq;
+    using System.Net;
     using System.Reflection;
+    using System.Text;
+    using System.Web.Script.Serialization;
 
     /// <summary>
     /// Wraps JSON services within a class that return dynamic JSON dictionaries for
@@ -16,16 +16,51 @@
     /// </summary>
     public class JsonService
     {
+
+        /// <summary>
+        /// Instantiate dynamic JSON service with API url (root or method url). Private; use .Url(url) to start the fluent interface.
+        /// </summary>
+        /// <param name="baseUrlOrMethodUrl">The root API url or a method URL</param>
+        private JsonService(string baseUrlOrMethodUrl)
+        {
+            this.BaseUri = new Uri(baseUrlOrMethodUrl);
+            this.Encoding = UTF8Encoding.UTF8;
+        }
+
+        #region Private Props
+
+        /// <summary>
+        /// The base URI or method URI
+        /// </summary>
         private Uri BaseUri { get; set; }
 
         /// <summary>
-        /// Instantiate dynamic JSON service with API url (root or method url)
+        /// Gets or sets the credentials used for the request when challenged.
         /// </summary>
-        /// <param name="baseUri"></param>
-        public JsonService(Uri baseUri)
+        private ICredentials Credentials { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether to forcefully send the Authorization HTTP header on the first request.
+        /// </summary>
+        private bool ForceSendAuthorization { get; set; }
+
+        /// <summary>
+        /// The Encoding to use when downloading/uploading data.
+        /// </summary>
+        private Encoding Encoding { get; set; }
+
+        #endregion
+
+        #region Static Methods
+
+        /// <summary>
+        /// Instantiate a new fluent interface for JsonService
+        /// </summary>
+        /// <param name="url">The root API or method URL to post/get to</param>
+        /// <returns>JsonService</returns>
+        public static JsonService For(string url)
         {
-            this.BaseUri = baseUri;
-            this.Encoding = UTF8Encoding.UTF8;
+            return new JsonService(url);
         }
 
         /// <summary>
@@ -33,9 +68,29 @@
         /// </summary>
         /// <param name="url">Full API URL to the GET metod</param>
         /// <returns></returns>
-        public static dynamic GetUrl(string url)
+        public static dynamic GetFrom(string url)
         {
-            return new JsonService(new Uri(url)).GET("");
+            return JsonService.For(url).Get();
+        }
+
+        /// <summary>
+        /// Shortcut for new JsonService(baseUri).GET(relative)
+        /// </summary>
+        /// <param name="url">Full API URL to the GET metod</param>
+        /// <returns></returns>
+        public static dynamic GetFrom(string url, object options)
+        {
+            return JsonService.For(url).Get(options);
+        }
+
+        /// <summary>
+        /// Shortcut for new JsonService(baseUri).GET(relative)
+        /// </summary>
+        /// <param name="url">Full API URL to the GET metod</param>
+        /// <returns></returns>
+        public static dynamic GetFrom(string url, IDictionary<string, string> options)
+        {
+            return JsonService.For(url).Get(options);
         }
 
         /// <summary>
@@ -44,9 +99,9 @@
         /// <param name="url">Full API URL to the GET metod</param>
         /// <param name="dataParams">Key/value pair query parameters (e.g. ?key=value)</param>
         /// <returns></returns>
-        public static dynamic PostUrl(string url, object dataParams)
+        public static dynamic PostTo(string url, object dataParams)
         {
-            return new JsonService(new Uri(url)).POST("", dataParams);
+            return JsonService.For(url).Post(dataParams);
         }
 
         /// <summary>
@@ -55,29 +110,37 @@
         /// <param name="url">Full API URL to the POST metod</param>
         /// <param name="dataParams">String dictionary of Key/value pair query parameters (e.g. ?key=value)</param>
         /// <returns></returns>
-        public static dynamic PostUrl(string url, IDictionary<string, string> dataParams)
+        public static dynamic PostTo(string url, IDictionary<string, string> dataParams)
         {
-            return new JsonService(new Uri(url)).POST("", dataParams);
+            return JsonService.For(url).Post(dataParams);
         }
 
-        #region Public Props
-
-        /// <summary>
-        /// Gets or sets the credentials used for the request when challenged.
-        /// </summary>
-        public ICredentials Credentials { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether to forcefully send the Authorization HTTP header on the first request.
-        /// </summary>
-        public bool ForceSendAuthorization { get; set; }
-
-        /// <summary>
-        /// The Encoding to use when downloading/uploading data.
-        /// </summary>
-        public Encoding Encoding { get; set; }
-
         #endregion
+
+        #region Fluent Methods
+
+        /// <summary>
+        /// Set to use a specific encoding for requests
+        /// </summary>
+        /// <param name="encoding"></param>
+        /// <returns></returns>
+        public JsonService UseEncoding(Encoding encoding)
+        {
+            this.Encoding = encoding;
+
+            return this;
+        }
+
+        /// <summary>
+        /// Force sending Authorization HTTP header on the request
+        /// </summary>
+        /// <returns></returns>
+        public JsonService ForceAuthorization()
+        {
+            this.ForceSendAuthorization = true;
+
+            return this;
+        }
 
         /// <summary>
         /// Shortcut for adding basic auth credential
@@ -85,9 +148,9 @@
         /// <param name="userName">Your username</param>
         /// <param name="password">Your password</param>
         /// <param name="force">Forcefully send authorization header on first request</param>
-        public void AddBasicAuth(string userName, string password, bool force = false)
+        public JsonService AuthenticateAsBasic(string userName, string password, bool force = false)
         {
-            this.AddBasicAuth(new NetworkCredential(userName, password), force);
+            return this.AuthenticateAsBasic(new NetworkCredential(userName, password), force);
         }
 
         /// <summary>
@@ -95,25 +158,60 @@
         /// </summary>
         /// <param name="credential">A NetworkCredential for your Basic auth</param>
         /// <param name="force">Forcefully send authorization header on first request</param>
-        public void AddBasicAuth(NetworkCredential credential, bool force = false)
+        public JsonService AuthenticateAsBasic(NetworkCredential credential, bool force = false)
         {
-            var cred = new CredentialCache();
-
-            cred.Add(BaseUri, "Basic", credential);
-
-            this.Credentials = cred;
-            this.ForceSendAuthorization = force;
+            return this.AuthenticateAs(new CredentialCache() { { BaseUri, "Basic", credential } }, force);
         }
+
+        /// <summary>
+        /// Authenticate using an ICredentials (Windows, Digest, NTLM, etc.)
+        /// </summary>
+        /// <param name="credentials"></param>
+        /// <param name="force"></param>
+        /// <returns></returns>
+        public JsonService AuthenticateAs(ICredentials credentials, bool force = false)
+        {
+            this.Credentials = credentials;
+            this.ForceSendAuthorization = force;
+
+            return this;
+        }
+
+        #endregion
+
+        #region Public Get/Post Methods
 
         /// <summary>
         /// GETs from API URL and returns a dynamically typed object representing the
         /// response from the service.
         /// </summary>
-        /// <param name="pageMethod">Page, method, or file to append to end of API URL</param>
+        /// <param name="pageMethod">Page, method, or file to append to end of API URL. Leave blank to use base url.</param>
         /// <returns></returns>
-        public dynamic GET(string pageMethod)
+        public dynamic Get(string pageMethod = "")
         {
-            return GET(pageMethod, null);
+            return Get(pageMethod, null);
+        }
+
+        /// <summary>
+        /// GETs base URL and returns a dynamically typed object representing the
+        /// response from the service.
+        /// </summary>
+        /// <param name="queryParams">Anonymous object representing key/value pairs for querystring</param>
+        /// <returns>Json</returns>
+        public dynamic Get(object queryParams)
+        {
+            return Get(string.Empty, queryParams);
+        }
+
+        /// <summary>
+        /// GETs base URL and returns a dynamically typed object representing the
+        /// response from the service.
+        /// </summary>
+        /// <param name="queryParams">Dictionary representing key/value pairs for querystring</param>
+        /// <returns>Json</returns>
+        public dynamic Get(IDictionary<string, string> queryParams)
+        {
+            return Get(string.Empty, queryParams);
         }
 
         /// <summary>
@@ -123,7 +221,7 @@
         /// <param name="pageMethod">Page, method, or file to append to end of API URL</param>
         /// <param name="queryParams">Key/value pair query parameters (e.g. ?key=value)</param>
         /// <returns></returns>
-        public dynamic GET(string pageMethod, object queryParams)
+        public dynamic Get(string pageMethod, object queryParams)
         {
             return PerformGET(pageMethod, queryParams.ToNameValueCollection());
         }
@@ -135,9 +233,33 @@
         /// <param name="pageMethod">Page, method, or file to append to end of API URL</param>
         /// <param name="queryParams">String dictionary of Key/value pair query parameters (e.g. ?key=value)</param>
         /// <returns></returns>
-        public dynamic GET(string pageMethod, IDictionary<string, string> queryParams)
+        public dynamic Get(string pageMethod, IDictionary<string, string> queryParams)
         {
             return PerformGET(pageMethod, queryParams.ToNameValueCollection());
+        }
+
+        /// <summary>
+        /// POSTs to the base URL and returns a dynamically typed object representing the
+        /// response from the service.
+        /// </summary>
+        /// <param name="formData">Key/value pair query parameters (e.g. ?key=value)</param>
+        /// <returns></returns>
+        public dynamic Post(object formData)
+        {
+            return PerformPOST(String.Empty, formData.ToNameValueCollection());
+
+        }
+
+        /// <summary>
+        /// POSTs to the base URL and returns a dynamically typed object representing the
+        /// response from the service.
+        /// </summary>
+        /// <param name="formData">Key/value pair dictionary for query parameters (e.g. ?key=value)</param>
+        /// <returns></returns>
+        public dynamic Post(IDictionary<string, string> formData)
+        {
+            return PerformPOST(String.Empty, formData.ToNameValueCollection());
+
         }
 
         /// <summary>
@@ -147,7 +269,7 @@
         /// <param name="pageMethod">Page, method, or file to append to end of API URL</param>
         /// <param name="formData">Key/value pair query parameters (e.g. ?key=value)</param>
         /// <returns></returns>
-        public dynamic POST(string pageMethod, object formData)
+        public dynamic Post(string pageMethod, object formData)
         {
             return PerformPOST(pageMethod, formData.ToNameValueCollection());
         }
@@ -159,10 +281,12 @@
         /// <param name="pageMethod">Page, method, or file to append to end of API URL</param>
         /// <param name="formData">String dictionary of Key/value pair query parameters (e.g. ?key=value)</param>
         /// <returns></returns>
-        public dynamic POST(string pageMethod, IDictionary<string, string> formData)
+        public dynamic Post(string pageMethod, IDictionary<string, string> formData)
         {
             return PerformPOST(pageMethod, formData.ToNameValueCollection());
         }
+
+        #endregion
 
         #region Private Helpers
 
@@ -178,7 +302,7 @@
                 return Json.Parse(PerformRequest(pageMethod, HttpMethod.POST, formData));
             }
             else
-                throw new ArgumentNullException("formData)", "For POST, data cannot be null.");
+                throw new ArgumentNullException("formData", "For POST, formData cannot be null.");
         }
 
         /// <summary>
@@ -206,13 +330,12 @@
                         if (basicAuth != null)
                         {
                             var cre = string.Format("{0}:{1}", basicAuth.UserName, basicAuth.Password);
-                            var base64 = Convert.ToBase64String(System.Text.UTF8Encoding.UTF8.GetBytes(cre));
+                            var base64 = Convert.ToBase64String(Encoding.GetBytes(cre));
 
                             client.Headers.Add("Authorization", "Basic " + base64);
                         }
                     }
 
-                    client.UseDefaultCredentials = false;
                     client.Credentials = this.Credentials;
                 }
 
@@ -248,15 +371,33 @@
     /// a JSON property cannot be translated to a CLR property (x.prop), you can access it
     /// via the dictionary[key] syntax or compact form (e.g. "foo-bar" => foobar)
     /// </summary>
-    public class Json : DynamicObject, IDictionary<string, object>
+    public class Json : DynamicObject
     {
         // It's case-sensitive, baby!
-        private readonly IDictionary<string, dynamic> DynamicDictionary = new Dictionary<string, dynamic>(StringComparer.Ordinal);
+        private readonly IDictionary<string, dynamic> DynamicDictionary = 
+            new Dictionary<string, dynamic>(StringComparer.Ordinal);
 
         // Key: Compact key, Value: original value
-        private readonly IDictionary<string, string> KeyDictionary = new Dictionary<string, string>(StringComparer.Ordinal);
+        private readonly IDictionary<string, string> KeyDictionary = 
+            new Dictionary<string, string>(StringComparer.Ordinal);
 
+        // Store original deserialized object for serialization
         private readonly object OriginalObject;
+
+        /// <summary>
+        ///  Support dictionary key getting
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public object this[string key]
+        {
+            get
+            {
+                return this.DynamicDictionary[key];
+            }
+        }
+
+        #region Static Methods
 
         /// <summary>
         /// Creates a new Dynamic JSON dictionary with given (assumes valid) JSON string.
@@ -286,6 +427,8 @@
         {
             return new JavaScriptSerializer().Serialize(anonObject);
         }
+
+        #endregion
 
         #region Constructors
 
@@ -322,18 +465,16 @@
         public override string ToString()
         {
             if (this.OriginalObject != null)
-            {
                 return new JavaScriptSerializer().Serialize(this.OriginalObject);
-            }
             else
-            {
                 return base.ToString();
-            }
         }
+
+        #region Private Helpers
 
         /// <summary>
         /// Translates a JSON string, object dictionary into a dictionary that wraps
-        /// inner JSON objects with the DynamicJsonDictionary as well. This makes it
+        /// inner JSON objects with the Json object as well. This makes it
         /// easy for callers to access JSON via CLR property syntax or dictionary syntax.
         /// </summary>
         /// <param name="dictionary"></param>
@@ -374,119 +515,46 @@
         /// <returns></returns>
         private dynamic GetPropertyValue(string jsonKeyPath)
         {
-            // Find compact key, in case caller is requesting one
-            KeyValuePair<string, string> compactKv = this.KeyDictionary.LastOrDefault(x =>
-                x.Key.Equals(jsonKeyPath, StringComparison.Ordinal));
+            // Get the key to use
+            // If no key exists, try to get the compact version
+            var key = (!this.DynamicDictionary.ContainsKey(jsonKeyPath) &&
+                this.KeyDictionary.ContainsKey(jsonKeyPath)) ?
+                this.KeyDictionary[jsonKeyPath] : jsonKeyPath;
 
-            if (this.DynamicDictionary.ContainsKey(jsonKeyPath))
-            {
-                return this.DynamicDictionary[jsonKeyPath];
-            }
-            else if (compactKv.Key != null)
-            {
-                return this.DynamicDictionary[compactKv.Value];
-            }
+            if (this.DynamicDictionary.ContainsKey(key) || key != null)
+                return this.DynamicDictionary[key];
 
             return null;
         }
 
+        #endregion
+
         #region DynamicObject Overrides
 
+        /// <summary>
+        /// Get result of dynamic member
+        /// </summary>
+        /// <param name="binder"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             result = GetPropertyValue(binder.Name);
             return result != null;
         }
 
-        #endregion
-
-        #region IDictionary<string, object> Members
-
-        public void Add(string key, object value)
+        /// <summary>
+        /// Forward non-existant method invocations to dictionary
+        /// </summary>
+        /// <param name="binder"></param>
+        /// <param name="args"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
         {
-            throw new NotImplementedException("This dictionary is read-only.");
-        }
+            result = DynamicDictionary.GetType().InvokeMember(binder.Name, BindingFlags.InvokeMethod, null, this.DynamicDictionary, args);
 
-        public bool ContainsKey(string key)
-        {
-            return this.DynamicDictionary.ContainsKey(key);
-        }
-
-        public ICollection<string> Keys
-        {
-            get { return this.DynamicDictionary.Keys; }
-        }
-
-        public bool Remove(string key)
-        {
-            throw new NotImplementedException("This dictionary is read-only");
-        }
-
-        public bool TryGetValue(string key, out object value)
-        {
-            return this.DynamicDictionary.TryGetValue(key, out value);
-        }
-
-        public ICollection<object> Values
-        {
-            get { return this.DynamicDictionary.Values; }
-        }
-
-        public object this[string key]
-        {
-            get
-            {
-                return this.DynamicDictionary[key];
-            }
-            set
-            {
-                throw new NotImplementedException("This dictionary is read-only");
-            }
-        }
-
-        public void Add(KeyValuePair<string, object> item)
-        {
-            throw new NotImplementedException("This dictionary is read-only");
-        }
-
-        public void Clear()
-        {
-            throw new NotImplementedException("This dictionary is read-only");
-        }
-
-        public bool Contains(KeyValuePair<string, object> item)
-        {
-            return this.DynamicDictionary.Contains(item);
-        }
-
-        public void CopyTo(KeyValuePair<string, object>[] array, int arrayIndex)
-        {
-            this.DynamicDictionary.CopyTo(array, arrayIndex);
-        }
-
-        public int Count
-        {
-            get { return this.DynamicDictionary.Count; }
-        }
-
-        public bool IsReadOnly
-        {
-            get { return true; }
-        }
-
-        public bool Remove(KeyValuePair<string, object> item)
-        {
-            throw new NotImplementedException("This dictionary is read-only");
-        }
-
-        public System.Collections.IEnumerator GetEnumerator()
-        {
-            return this.DynamicDictionary.GetEnumerator();
-        }
-
-        IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
-        {
-            return this.DynamicDictionary.GetEnumerator();
+            return result != null;
         }
 
         #endregion

@@ -20,7 +20,7 @@ namespace Example.Mvc.Controllers
         public ActionResult GitHubBasicList()
         {
             // Get Kamran's repos
-            var repositories = JsonService.GetUrl("https://github.com/api/v2/json/repos/show/kamranayub");
+            var repositories = JsonService.GetFrom("https://github.com/api/v2/json/repos/show/kamranayub");
 
             return View(repositories);
         }
@@ -33,15 +33,13 @@ namespace Example.Mvc.Controllers
                 return View();
             }
 
-            // Connect to GitHub
-            var gitUri = new Uri("https://github.com/api/v2/json/");
-            var gitService = new JsonService(gitUri);
-
-            // Authenticate to GitHub using OAuth token
-            gitService.AddBasicAuth(username + "/token", token, true);
+            // Connect to GitHub and Authenticate to GitHub using OAuth token
+            var gitService = 
+                JsonService.For("https://github.com/api/v2/json/")
+                    .AuthenticateAsBasic(username + "/token", token, true);
 
             // Get Schacon
-            var user = gitService.GET("user/show").user;
+            var user = gitService.Get("user/show").user;
 
             return View(user);
         }
@@ -61,15 +59,15 @@ namespace Example.Mvc.Controllers
             gitParams["values[blog]"] = "http://github.com/" + username;
 
             // Get old blog
-            var oldBlog = JsonService.GetUrl("https://github.com/api/v2/json/user/show/" + username).user.blog;
+            var oldBlog = JsonService.GetFrom("https://github.com/api/v2/json/user/show/" + username).user.blog;
 
             // Update to new blog
-            var jsonUpdate = JsonService.PostUrl("https://github.com/api/v2/json/user/show/" + username, gitParams);
+            var jsonUpdate = JsonService.PostTo("https://github.com/api/v2/json/user/show/" + username, gitParams);
 
             // Revert
             gitParams["values[blog]"] = oldBlog.ToString();
 
-            var jsonReverted = JsonService.PostUrl("https://github.com/api/v2/json/user/show/" + username, gitParams);
+            var jsonReverted = JsonService.PostTo("https://github.com/api/v2/json/user/show/" + username, gitParams);
 
             return View(new[] { jsonUpdate, jsonReverted });
         }
@@ -77,7 +75,7 @@ namespace Example.Mvc.Controllers
         public ActionResult EnvatoBasicList()
         {
             // Get Kamran's Code Canyon items
-            var files = JsonService.GetUrl("http://marketplace.envato.com/api/v2/new-files-from-user:kayub,codecanyon.json");
+            var files = JsonService.GetFrom("http://marketplace.envato.com/api/v2/new-files-from-user:kayub,codecanyon.json");
 
             return View(files);
         }
