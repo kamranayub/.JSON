@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Net;
 using System.Security;
+using System.Collections.Generic;
 
 namespace DotJson.Tests
 {
@@ -14,7 +15,7 @@ namespace DotJson.Tests
     public class JsonServiceTests
     {
 
-        private Uri _uri = new Uri("https://github.com/api/v2/json/");
+        private Uri _uri = new Uri("http://github.com/api/v2/json/");
 
         /// <summary>
         ///A test for GET
@@ -54,15 +55,26 @@ namespace DotJson.Tests
         ///A test for POST
         ///</summary>
         [TestMethod()]
-        public void JsonService_POST_ShouldReturn_Value_ForGitHubService()
+        public void JsonService_POST_ShouldUpdate_Profile_ForGitHubService()
         {
-            var @params =  new { foo = "bar" };
+            var setBlog =  new Dictionary<string, string>() 
+            { 
+                {"login", "kamranayub"},
+                {"token", System.IO.File.ReadAllText("../../../git_token.private")},
+                {"values[blog]", "http://intrepidstudios.com/blog/?POST-test" }
+            };
+
             var svc = new JsonService(_uri);
-            var json = svc.POST("repos/show/kamranayub", @params);
+            var json = svc.POST("user/show/kamranayub", setBlog);
 
-            CheckRepositoriesResult(json);
+            Assert.AreEqual("http://intrepidstudios.com/blog/?POST-test", json.user.blog.ToString());
 
-            CheckRepositoriesResult(JsonService.PostUrl("https://github.com/api/v2/json/repos/show/kamranayub", @params));
+            // Revert
+            setBlog["values[blog]"] = "http://intrepidstudios.com/blog/";
+
+            json = svc.POST("user/show/kamranayub", setBlog);
+
+            Assert.AreEqual("http://intrepidstudios.com/blog/", json.user.blog.ToString());
         }
 
         /// <summary>

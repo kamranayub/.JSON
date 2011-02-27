@@ -24,10 +24,26 @@ The `JsonService` class will expect that all results will be returned in JSON. I
 
 Call the static shortcuts `JsonService.GetUrl(url)` or `JsonService.PostUrl(url, params)` to access JSON-enabled web services.
 	
+	// GET
 	// Get my repos
-	var repositories = JsonService.GetUrl("http://github.com/api/v2/repos/show/kamranayub").repositories;
+	var repositories = JsonService.GetUrl("https://github.com/api/v2/repos/show/kamranayub").repositories;
 	
 	return View(repositories);
+	
+	// POST
+	// Post and update profile
+	
+	// Use a dictionary or anonymous object
+	var gitParams = new Dictionary<string, string>();
+
+	gitParams["login"] = username;
+	gitParams["token"] = token;
+	gitParams["values[blog]"] = "http://github.com/" + username;
+
+	// Update blog
+	var response = JsonService.PostUrl("https://github.com/api/v2/json/user/show/" + username, gitParams);
+	
+	return response.user.blog // This will be http://github.com/username
 
 ### The Long Way ###
 

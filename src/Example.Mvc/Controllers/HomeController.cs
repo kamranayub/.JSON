@@ -29,7 +29,7 @@ namespace Example.Mvc.Controllers
         {
             if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(username))
             {
-                ViewBag.Error = "Enter a user and API token in the URL (e.g. ?username=your_usernametoken=your_api_token) to test.";
+                ViewBag.Error = "Enter a user and API token in the URL (e.g. ?username=your_username&token=your_api_token) to test.";
                 return View();
             }
 
@@ -44,6 +44,34 @@ namespace Example.Mvc.Controllers
             var user = gitService.GET("user/show").user;
 
             return View(user);
+        }
+
+        public ActionResult GitHubUpdateProfile(string username, string token)
+        {
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(username))
+            {
+                ViewBag.Error = "Enter a user and API token in the URL (e.g. ?username=your_username&token=your_api_token) to test.";
+                return View();
+            }
+
+            var gitParams = new Dictionary<string, string>();
+
+            gitParams["login"] = username;
+            gitParams["token"] = token;
+            gitParams["values[blog]"] = "http://github.com/" + username;
+
+            // Get old blog
+            var oldBlog = JsonService.GetUrl("https://github.com/api/v2/json/user/show/" + username).user.blog;
+
+            // Update to new blog
+            var jsonUpdate = JsonService.PostUrl("https://github.com/api/v2/json/user/show/" + username, gitParams);
+
+            // Revert
+            gitParams["values[blog]"] = oldBlog.ToString();
+
+            var jsonReverted = JsonService.PostUrl("https://github.com/api/v2/json/user/show/" + username, gitParams);
+
+            return View(new[] { jsonUpdate, jsonReverted });
         }
 
         public ActionResult EnvatoBasicList()

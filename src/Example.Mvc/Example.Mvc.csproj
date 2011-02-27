@@ -92,7 +92,9 @@
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Views\Home\GitHubUpdateProfile.cshtml" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DotJson.Core\DotJson.Core.csproj">
       <Project>{F43F6E0D-C281-4245-AD0C-5033C70E611D}</Project>
