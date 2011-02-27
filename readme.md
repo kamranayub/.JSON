@@ -7,14 +7,14 @@ It's made up of syntactic sugar, spice, and everything nice.
 
 ### Examples ###
 
-View full examples in **/src/**.
+View full examples in [/src/](tree/master/src).
 
 ### Install ###
 
- - Copy the file to your project. 
- - Add a reference to `System.Web.Extensions`. 
- - Take a deep breath
- - You're all done
+1. Copy the file to your project. 
+2. Add a reference to `System.Web.Extensions`. 
+3. Take a deep breath
+4. You're all done
 
 ## JSON Web Services - Use `JsonService` ##
 
