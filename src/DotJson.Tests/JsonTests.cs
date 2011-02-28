@@ -38,6 +38,20 @@ namespace DotJson.Tests
         ///A test for Json
         ///</summary>
         [TestMethod()]
+        public void Json_ShouldConvert_SimpleJSON_AndReturn_AllowNullPropertyValues()
+        {
+            var json = "{ 'baz': null }";
+
+            dynamic x = Json.Parse(json);
+
+            Assert.IsNotNull(x);
+            Assert.AreEqual(null, x.baz);
+        }
+
+        /// <summary>
+        ///A test for Json
+        ///</summary>
+        [TestMethod()]
         public void Json_ShouldConvert_SimpleJSON_AndReturn_NestedProperty()
         {
             var json = "{ baz: { whiz: 'bang' } }";

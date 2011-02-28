@@ -394,7 +394,7 @@ namespace DotJson
         {
             this.OriginalObject = dictionary;
 
-            TranslateDictionary(dictionary);
+            PopulateDictionary(dictionary);
         }
 
         #endregion
@@ -473,33 +473,30 @@ namespace DotJson
         /// easy for callers to access JSON via CLR property syntax or dictionary syntax.
         /// </summary>
         /// <param name="dictionary"></param>
-        private void TranslateDictionary(IDictionary<string, object> dictionary)
+        /// <remarks>
+        /// null is an acceptable value!
+        /// </remarks>
+        private void PopulateDictionary(IDictionary<string, object> dictionary)
         {
             foreach (var kv in dictionary)
             {
-                object value = kv.Value;
+                var value = GetJsonOrOriginal(kv.Value);
 
-                if (kv.Value is IDictionary<string, object>)
-                {
-                    value = new Json(kv.Value as IDictionary<string, object>);
-                }
-                else if (kv.Value is Array)
-                {
-                    var objects = kv.Value as object[];
+                if (value is Array)
+                    value = ((object[])value).Select(o => GetJsonOrOriginal(o)).ToArray();
 
-                    if (objects.Any())
-                    {
-                        value = objects.Select(o => o is IDictionary<string, object> ?
-                                    new Json(o as IDictionary<string, object>) : o).ToArray();
-                    }
-                }
-
-                DynamicDictionary.Add(kv.Key, value.TryConvert());
+                DynamicDictionary.Add(kv.Key, DotJsonExtensions.TryConvert(value));
 
                 // Only add if existing case-sensitive key does not exist.
                 if (!KeyDictionary.ContainsKey(kv.Key.ToCLSId()))
                     KeyDictionary.Add(kv.Key.ToCLSId(), kv.Key);
             }
+        }
+
+        private object GetJsonOrOriginal(object o)
+        {
+            return o is IDictionary<string, object> ?
+                new Json(o as IDictionary<string, object>) : o;
         }
 
         #endregion
@@ -511,7 +508,10 @@ namespace DotJson
         /// </summary>
         /// <param name="binder"></param>
         /// <param name="result"></param>
-        /// <returns></returns>
+        /// <returns>True if found a match, false if not.</returns>
+        /// <remarks>
+        /// null is an acceptable value! Judge success on whether we found a dictionary match.
+        /// </remarks>
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             var property = binder.Name;
@@ -527,7 +527,7 @@ namespace DotJson
             else
                 result = null;
 
-            return result != null;
+            return this.DynamicDictionary.ContainsKey(key);
         }
 
         /// <summary>
