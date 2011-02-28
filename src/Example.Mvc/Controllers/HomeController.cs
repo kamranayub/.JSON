@@ -15,7 +15,7 @@ namespace Example.Mvc.Controllers
         public ActionResult Index()
         {
             return View();
-        }
+        }        
 
         public ActionResult GitHubBasicList()
         {

@@ -447,11 +447,20 @@ namespace DotJson
         /// <returns></returns>
         public override string ToString()
         {
-            if (this.OriginalObject != null)
-                return Serializer.Serialize(this.OriginalObject);
-            else
-                return base.ToString();
+            return this.ToString(false);
         }
+
+        /// <summary>
+        /// Converts current JSON object to a JSON string (if it is indeed a JSON object). Prettifies the output, if asked to.
+        /// </summary>
+        /// <param name="pretty">Whether or not to "prettify" the output</param>
+        /// <returns></returns>
+        public string ToString(bool pretty)
+        {
+            var json = Serializer.Serialize(this.OriginalObject ?? this);
+
+            return pretty ? json.PrettyJson() : json;
+        }        
 
         #endregion
 
@@ -514,7 +523,7 @@ namespace DotJson
 
             if (this.DynamicDictionary.ContainsKey(key))
                 result = this.DynamicDictionary[key];
-            else 
+            else
                 result = null;
 
             return result != null;
@@ -638,6 +647,81 @@ namespace DotJson
                 return theUri;
 
             return thing;
+        }
+
+        /// <summary>
+        /// Formats a JSON string by walking through it and examining the contents.
+        /// </summary>
+        /// <param name="json">Unformatted JSON string, expects JavaScriptSerializer.Deserialize() output</param>
+        /// <returns>Formatted JSON string</returns>
+        /// <remarks>
+        /// [ { should have line breaks and tabs after them
+        /// ] } should have line breaks and tabs before them
+        /// : should have a space after it
+        /// , should have a line break and tab
+        /// </remarks>
+        public static string PrettyJson(this string json)
+        {
+            var sbOutput = new StringBuilder();
+            bool inQuotes = false;
+            int level = 0;
+
+            Action Tabify = () =>
+            {
+                var chars = new char[level];
+
+                for (var i = 0; i < level; i++)
+                    chars[i] = '\t';
+
+                sbOutput.Append(chars);
+            };
+
+            for (var i = 0; i < json.Length; i++)
+            {
+                var curChar = json[i];
+
+                // Ignore escaped quotes
+                if (curChar == '"' && json[i - 1] != '\\')
+                {
+                    if (!inQuotes)
+                        inQuotes = true;
+                    else
+                        inQuotes = false;
+                }
+
+                // Don't format anything within quotes
+                if (!inQuotes)
+                {
+                    if (curChar == '{' || curChar == '[' || curChar == ',')
+                    {
+                        if (curChar != ',') level++;
+                        sbOutput.Append(curChar);
+                        sbOutput.AppendLine();
+                        Tabify();
+                    }
+                    else if (curChar == '}' || curChar == ']')
+                    {
+                        level--;
+                        sbOutput.AppendLine();
+                        Tabify();
+                        sbOutput.Append(curChar);
+                    }
+                    else if (curChar == ':')
+                    {
+                        sbOutput.Append(curChar + " ");
+                    }
+                    else
+                    {
+                        sbOutput.Append(curChar);
+                    }
+                }
+                else
+                {
+                    sbOutput.Append(curChar);
+                }
+            }
+
+            return sbOutput.ToString();
         }
     }
 }
