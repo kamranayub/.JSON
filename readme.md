@@ -7,9 +7,9 @@ It's made up of syntactic sugar, spice, and everything nice.
 	
 	// In controller
 	public ActionResult Index() {
-		var repositories = JsonService.GetFrom("http://github.com/api/v2/json/repos/show/kamranayub").repositories;
+		dynamic[] repositories = JsonService.GetFrom("http://github.com/api/v2/json/repos/show/kamranayub").repositories;
 		
-		var topRepo = repositories.OrderBy(r => r.watchers).First();
+		dynamic topRepo = repositories.OrderBy(r => r.watchers).First();
 		
 		return View(topRepo);
 	}
