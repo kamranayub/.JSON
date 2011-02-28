@@ -425,10 +425,11 @@ namespace DotJson
         /// Converts an object to a JSON string.
         /// </summary>
         /// <param name="anonObject">Object to serialize</param>
+        /// <param name="pretty">Whether or not to pretty format the output</param>
         /// <returns>A JSON String</returns>
-        public static string Stringify(object anonObject)
+        public static string Stringify(object anonObject, bool pretty = false)
         {
-            return new Json(anonObject).ToString();
+            return new Json(anonObject).ToString(pretty);
         }
 
         /// <summary>
