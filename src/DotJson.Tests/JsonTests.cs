@@ -46,6 +46,7 @@ namespace DotJson.Tests
 
             Assert.IsNotNull(x);
             Assert.AreEqual(null, x.baz);
+            Assert.AreEqual(null, x["baz"]);
         }
 
         /// <summary>
@@ -97,6 +98,21 @@ namespace DotJson.Tests
             Assert.AreEqual(2, x.foo.Length);
             Assert.AreEqual("whiz", x.foo[0].baz);
             Assert.AreEqual("bang", x.foo[1].bar);
+        }
+
+        [TestMethod]
+        public void Json_ShouldHandle_Basic_DictionarySyntax()
+        {
+            var json = "{ 'foobar': { 'baz': null }, 'array': [0, 1, 2] }";
+
+            dynamic x = Json.Parse(json);
+
+            Assert.IsNotNull(x);
+            Assert.IsNotNull(x["foobar"]);
+            Assert.AreEqual(null, x["foobar"]["baz"]);
+            Assert.IsTrue(x.ContainsKey("foobar"));
+            Assert.IsTrue(x.ContainsKey("array"));
+            Assert.AreEqual(1, x["array"][1]);
         }
 
         [TestMethod]
