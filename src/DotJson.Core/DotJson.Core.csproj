@@ -72,7 +72,9 @@
   </Target>
   -->
   <Target Name="AfterBuild">
-    <Delete Condition="'$(ConfigurationName)'=='Publish'" Files="../../DotJson.cs" />
-    <Copy Condition="'$(ConfigurationName)'=='Publish'" SourceFiles="DotJson.cs" DestinationFiles="../../DotJson.cs" />
+    <Delete Condition="'$(ConfigurationName)'=='Publish'" Files="..\..\DotJson.cs" />
+    <Copy Condition="'$(ConfigurationName)'=='Publish'" SourceFiles="DotJson.cs" DestinationFiles="..\..\DotJson.cs" />
+    <Delete Condition="'$(ConfigurationName)'=='Publish'" Files="$(ProjectDir)..\..\DotJson.dll" />
+    <Copy Condition="'$(ConfigurationName)'=='Publish'" SourceFiles="$(TargetDir)DotJson.dll" DestinationFiles="$(ProjectDir)..\..\DotJson.dll" />
   </Target>
 </Project>
