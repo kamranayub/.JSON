@@ -42,6 +42,15 @@ namespace DotJson.Tests
             Assert.IsTrue(tweets.Length > 1);
         }
 
+        [TestMethod]
+        public void JsonService_GET_ShouldReturn_Decompressed_GZip_Response()
+        {
+            dynamic x = JsonService.GetFrom("http://api.stackoverflow.com/1.1/users/109458/answers?pagesize=5&sort=creation");
+
+            Assert.IsNotNull(x);
+            Assert.IsNotNull(x.total);
+        }
+
         /// <summary>
         ///A test for GET
         ///</summary>

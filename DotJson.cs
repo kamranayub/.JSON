@@ -302,7 +302,7 @@ namespace DotJson
         /// <returns>Json</returns>
         private dynamic PerformRequest(string pageMethod, HttpMethod method, NameValueCollection requestData)
         {
-            using (var client = new WebClient())
+            using (var client = new EnhancedWebClient())
             {
                 if (this.Credentials == null)
                     client.UseDefaultCredentials = true;
@@ -349,6 +349,21 @@ namespace DotJson
         private enum HttpMethod { GET, POST }
 
         #endregion
+    }
+
+    /// <summary>
+    /// Overrides the base WebClient to add decompression support
+    /// </summary>
+    public class EnhancedWebClient : WebClient
+    {
+        protected override WebRequest GetWebRequest(Uri address)
+        {
+            HttpWebRequest request = (HttpWebRequest)base.GetWebRequest(address);
+
+            request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+
+            return request;
+        }
     }
 
     /// <summary>
