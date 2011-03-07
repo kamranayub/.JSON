@@ -101,6 +101,18 @@ namespace DotJson.Tests
         }
 
         [TestMethod]
+        public void Json_ShouldConvert_JsonArray()
+        {
+            var json = "[{ 'prop1': true }, { 'prop2': false }]";
+
+            dynamic[] x = Json.Parse(json);
+
+            Assert.IsNotNull(x);
+            Assert.AreEqual(true, x[0].prop1);
+            Assert.AreEqual(false, x[1].prop2);
+        }
+
+        [TestMethod]
         public void Json_ShouldHandle_Basic_DictionarySyntax()
         {
             var json = "{ 'foobar': { 'baz': null }, 'array': [0, 1, 2] }";

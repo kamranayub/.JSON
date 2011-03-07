@@ -408,6 +408,13 @@ namespace DotJson
         /// <returns>Json</returns>
         public static dynamic Parse(string json)
         {
+            // Handle arrays
+            if (json.Trim().IndexOf('[') == 0)
+            {
+                return Serializer.Deserialize<IDictionary<string, object>[]>(json)
+                    .Select(x => new Json(x)).ToArray();
+            }
+
             return new Json(json);
         }
 

@@ -34,6 +34,18 @@ namespace DotJson.Tests
         ///A test for GET
         ///</summary>
         [TestMethod()]
+        public void JsonService_GET_ShouldReturn_Value_ForTwitterArray()
+        {
+            dynamic[] tweets = JsonService.GetFrom("http://api.twitter.com/1/statuses/user_timeline.json?screen_name=kamranayub");
+
+            Assert.IsNotNull(tweets);
+            Assert.IsTrue(tweets.Length > 1);
+        }
+
+        /// <summary>
+        ///A test for GET
+        ///</summary>
+        [TestMethod()]
         public void JsonService_GET_ShouldAccept_BasicAuth_Credentials()
         {
             // Setup
